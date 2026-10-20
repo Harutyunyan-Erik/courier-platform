@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("../db", () => ({ prisma: { shipment: { findFirst: async () => null } } }));
 import { mapDhlStatus } from "./dhl";
 import { mapFedexStatus } from "./fedex";
 import { mapUpsStatus } from "./ups";

@@ -1,9 +1,10 @@
 import type { ShipmentStatus } from "@prisma/client";
+import { prisma } from "../db";
 import type { CarrierAdapter, CarrierEvent } from "./types";
 
 // Simulated carrier for testing automation without real API keys. Each event
-// becomes "visible" a few minutes after the previous one, starting from the
-// moment the tracking number was first seen by this process.
+// becomes "visible" a few minutes after the previous one, starting from when the
+// shipment was created (so it also works on serverless hosts with no shared memory).
 const STEPS: { status: ShipmentStatus; description: string; location: string }[] = [
   { status: "PICKED_UP", description: "Shipment picked up", location: "Yerevan, AM" },
   { status: "AT_HUB", description: "Arrived at sort facility", location: "Yerevan, AM" },
@@ -14,15 +15,17 @@ const STEPS: { status: ShipmentStatus; description: string; location: string }[]
 ];
 
 const STEP_MINUTES = Number(process.env.DEMO_STEP_MINUTES ?? 2);
-const firstSeen = new Map<string, number>();
 
 export const demoAdapter: CarrierAdapter = {
   id: "demo",
   label: "Demo (simulated)",
   isConfigured: () => true,
   async fetchEvents(trackingNumber) {
-    const start = firstSeen.get(trackingNumber) ?? Date.now();
-    firstSeen.set(trackingNumber, start);
+    const shipment = await prisma.shipment.findFirst({
+      where: { OR: [{ trackingNumber }, { carrierTrackingNumber: trackingNumber }] },
+      select: { createdAt: true },
+    });
+    const start = shipment?.createdAt.getTime() ?? Date.now();
     const elapsed = Math.floor((Date.now() - start) / 60_000 / STEP_MINUTES);
     return STEPS.slice(0, Math.min(elapsed + 1, STEPS.length)).map<CarrierEvent>((s, i) => ({
       externalId: `demo-${i}`,
