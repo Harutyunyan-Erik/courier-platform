@@ -14,6 +14,7 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://courier:courier@db:5432/courier
+      DATABASE_URL_UNPOOLED: postgresql://courier:courier@db:5432/courier
     ports:
       - "3000:3000"
     depends_on: [db]
@@ -24,6 +25,7 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://courier:courier@db:5432/courier
+      DATABASE_URL_UNPOOLED: postgresql://courier:courier@db:5432/courier
     command: ["npm", "run", "worker"]
     depends_on: [db, web]
     restart: unless-stopped

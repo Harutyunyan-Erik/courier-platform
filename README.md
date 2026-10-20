@@ -61,6 +61,21 @@ docker compose exec web npm run db:seed
 
 Կբարձրանան PostgreSQL-ը, կայքը (պորտ 3000) և worker-ը։ Դրսից HTTPS-ի համար դրեք Caddy կամ Nginx։
 
+## Vercel (ինտերնետում)
+
+1. vercel.com → **Add New → Project** → ընտրեք `courier-platform` repo-ն → դեռ **մի** սեղմեք Deploy։
+2. **Environment Variables** բաժնում ավելացրեք.
+   - `AUTH_SECRET`՝ երկար պատահական տեքստ
+   - `CRON_SECRET`՝ ևս մեկ պատահական տեքստ
+   - `SEED_ADMIN_PASSWORD`՝ admin@example.com-ի գաղտնաբառը
+   - `SEED_DEMO`՝ `true` (demo տվյալներով) կամ `false` (իրական աշխատանքի համար)
+3. Deploy սեղմեք։ Առաջին build-ը կձախողվի, որովհետև բազա դեռ չկա, դա նորմալ է։
+4. Project → **Storage → Create Database → Neon** → Connect։ `DATABASE_URL` և `DATABASE_URL_UNPOOLED` կավելանան ավտոմատ։
+5. **Deployments → Redeploy**։ Build-ի ընթացքում կանցնեն միգրացիաները և seed-ը։
+6. Settings → Environment Variables-ում ավելացրեք `APP_URL` = ձեր `https://....vercel.app` հասցեն և նորից Redeploy։
+
+Vercel Hobby պլանում cron-ը աշխատում է օրը մեկ անգամ (`vercel.json`)։ Ավելի հաճախ թարմացնելու համար [cron-job.org](https://cron-job.org)-ում ստեղծեք job, որը ամեն 15–30 րոպեն մեկ կանչում է `https://<ձեր հասցեն>/api/cron/sync`՝ `Authorization: Bearer <CRON_SECRET>` header-ով։
+
 ## Կրողների միացում
 
 API բանալիները դրվում են `.env`-ում, որից հետո ադմինի «Կրողներ» էջում կերևա «API-ն միացված է».
