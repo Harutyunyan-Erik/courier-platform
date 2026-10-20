@@ -16,7 +16,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (second === "admin" || second === "account") {
+  if (second === "admin" || second === "account" || second === "password") {
     const token = req.cookies.get(SESSION_COOKIE)?.value;
     const session = token ? await verifySession(token) : null;
     if (!session) return NextResponse.redirect(new URL(`/${first}/login?next=${encodeURIComponent(pathname)}`, req.url));

@@ -58,6 +58,9 @@ export const en = {
     orderNow: "Create shipment",
   },
   auth: {
+    changePassword: "Change password",
+    currentPassword: "Current password",
+    newPassword: "New password",
     loginTitle: "Log in",
     registerTitle: "Create an account",
     email: "Email",

@@ -60,6 +60,9 @@ export const ru: Dictionary = {
     orderNow: "Оформить отправку",
   },
   auth: {
+    changePassword: "Сменить пароль",
+    currentPassword: "Текущий пароль",
+    newPassword: "Новый пароль",
     loginTitle: "Вход",
     registerTitle: "Создать аккаунт",
     email: "Email",

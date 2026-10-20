@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { createSession, destroySession, hashPassword, STAFF_ROLES, verifyPassword } from "@/lib/auth";
+import { createSession, destroySession, hashPassword, requireUser, STAFF_ROLES, verifyPassword } from "@/lib/auth";
 import { getDictionary } from "@/lib/i18n";
 import { str, type FormState } from "@/lib/forms";
 
@@ -39,4 +39,14 @@ export async function register(locale: string, _: FormState, form: FormData): Pr
 export async function logout(locale: string) {
   await destroySession();
   redirect(`/${locale}`);
+}
+
+export async function changePassword(locale: string, _: FormState, form: FormData): Promise<FormState> {
+  const t = getDictionary(locale);
+  const user = await requireUser(locale);
+  const password = str(form, "password");
+  if (!(await verifyPassword(str(form, "current"), user.passwordHash))) return { error: t.auth.invalid };
+  if (password.length < 8) return { error: t.auth.passwordShort };
+  await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(password) } });
+  return { ok: t.admin.saved };
 }

@@ -18,7 +18,10 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">{t.account.title}</h1>
-          <p className="text-slate-600">{user.name} · {user.email}</p>
+          <p className="text-slate-600">
+            {user.name} · {user.email} ·{" "}
+            <Link href={`/${locale}/password`} className="text-brand-600 hover:underline">{t.auth.changePassword}</Link>
+          </p>
         </div>
         <Link href={`/${locale}/account/new`} className="btn-primary">+ {t.account.newShipment}</Link>
       </div>

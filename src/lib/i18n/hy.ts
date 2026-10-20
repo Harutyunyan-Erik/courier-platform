@@ -60,6 +60,9 @@ export const hy: Dictionary = {
     orderNow: "Ստեղծել առաքում",
   },
   auth: {
+    changePassword: "Փոխել գաղտնաբառը",
+    currentPassword: "Ընթացիկ գաղտնաբառ",
+    newPassword: "Նոր գաղտնաբառ",
     loginTitle: "Մուտք",
     registerTitle: "Ստեղծել հաշիվ",
     email: "Էլ. փոստ",

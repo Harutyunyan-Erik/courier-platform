@@ -46,9 +46,12 @@ export default async function AdminLayout({ children, params }: { children: Reac
             <div className="text-slate-500">{t.role[user.role]}</div>
           </div>
           <Suspense><LanguageSwitcher current={locale} /></Suspense>
-          <form action={logout.bind(null, locale)}>
-            <button className="text-sm text-slate-500 hover:text-slate-900">{t.nav.logout}</button>
-          </form>
+          <div className="flex gap-4">
+            <Link href={`/${locale}/password`} className="text-sm text-slate-500 hover:text-slate-900">{t.auth.changePassword}</Link>
+            <form action={logout.bind(null, locale)}>
+              <button className="text-sm text-slate-500 hover:text-slate-900">{t.nav.logout}</button>
+            </form>
+          </div>
         </div>
       </aside>
       <main className="flex-1 p-4 md:ml-60 md:p-8">{children}</main>
