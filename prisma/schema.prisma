@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  MANAGER
+  COURIER
+  CUSTOMER
+}
+
+enum ShipmentType {
+  AIR
+  GROUND
+}
+
+/// Normalized status list. Every carrier's raw status is mapped onto one of these.
+enum ShipmentStatus {
+  CREATED
+  PICKED_UP
+  IN_TRANSIT
+  AT_HUB
+  CUSTOMS
+  OUT_FOR_DELIVERY
+  DELIVERED
+  EXCEPTION
+  RETURNED
+  CANCELLED
+}
+
+enum EventSource {
+  API
+  WEBHOOK
+  MANUAL
+  SYSTEM
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String
+  name           String
+  phone          String?
+  role           Role      @default(CUSTOMER)
+  locale         String    @default("hy")
+  telegramChatId String?
+  telegramToken  String?   @unique
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  customerShipments Shipment[]    @relation("CustomerShipments")
+  courierShipments  Shipment[]    @relation("CourierShipments")
+  events            StatusEvent[]
+  auditLogs         AuditLog[]
+}
+
+/// A carrier/partner. `adapter` selects the integration in src/lib/carriers.
+model Carrier {
+  id        String     @id @default(cuid())
+  code      String     @unique
+  name      String
+  adapter   String     @default("manual")
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  shipments Shipment[]
+}
+
+model Shipment {
+  id                    String         @id @default(cuid())
+  trackingNumber        String         @unique
+  type                  ShipmentType
+  currentStatus         ShipmentStatus @default(CREATED)
+
+  carrierId             String?
+  carrier               Carrier?       @relation(fields: [carrierId], references: [id])
+  carrierTrackingNumber String?
+  autoSync              Boolean        @default(true)
+  lastSyncedAt          DateTime?
+  lastSyncError         String?
+
+  senderName            String
+  senderPhone           String?
+  senderAddress         String?
+  originCity            String
+  originCountry         String
+
+  recipientName         String
+  recipientPhone        String?
+  recipientEmail        String?
+  recipientAddress      String?
+  destCity              String
+  destCountry           String
+
+  weightKg              Decimal?       @db.Decimal(10, 2)
+  pieces                Int            @default(1)
+  description           String?
+  price                 Decimal?       @db.Decimal(12, 2)
+  currency              String         @default("AMD")
+  estimatedDelivery     DateTime?
+  notes                 String?
+
+  customerId            String?
+  customer              User?          @relation("CustomerShipments", fields: [customerId], references: [id])
+  courierId             String?
+  courier               User?          @relation("CourierShipments", fields: [courierId], references: [id])
+
+  events                StatusEvent[]
+  subscriptions         TelegramSubscription[]
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  @@index([currentStatus])
+  @@index([customerId])
+  @@index([courierId])
+}
+
+/// Append-only status history. The shipment's current status is derived from the
+/// latest visible event, so API and manual updates live side by side.
+model StatusEvent {
+  id          String         @id @default(cuid())
+  shipmentId  String
+  shipment    Shipment       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  status      ShipmentStatus
+  rawStatus   String?
+  description String?
+  location    String?
+  occurredAt  DateTime
+  source      EventSource
+  /// Stable id from the carrier, used to avoid importing the same event twice.
+  externalId  String?
+  /// Hidden events stay in history but do not affect the status or the public page.
+  hidden      Boolean        @default(false)
+  isPublic    Boolean        @default(true)
+  createdById String?
+  createdBy   User?          @relation(fields: [createdById], references: [id])
+  createdAt   DateTime       @default(now())
+
+  @@unique([shipmentId, externalId])
+  @@index([shipmentId, occurredAt])
+}
+
+model TelegramSubscription {
+  id         String   @id @default(cuid())
+  chatId     String
+  shipmentId String
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([chatId, shipmentId])
+}
+
+/// Simple price list for the public calculator and order form.
+model Tariff {
+  id          String       @id @default(cuid())
+  type        ShipmentType
+  destCountry String
+  baseFee     Decimal      @db.Decimal(12, 2)
+  pricePerKg  Decimal      @db.Decimal(12, 2)
+  currency    String       @default("AMD")
+  daysMin     Int
+  daysMax     Int
+  active      Boolean      @default(true)
+
+  @@unique([type, destCountry])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+}

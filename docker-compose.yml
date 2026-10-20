@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: courier
+      POSTGRES_PASSWORD: courier
+      POSTGRES_DB: courier
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  web:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://courier:courier@db:5432/courier
+    ports:
+      - "3000:3000"
+    depends_on: [db]
+    restart: unless-stopped
+
+  worker:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://courier:courier@db:5432/courier
+    command: ["npm", "run", "worker"]
+    depends_on: [db, web]
+    restart: unless-stopped
+
+volumes:
+  pgdata:

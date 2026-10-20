@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eef6ff;
+  --color-brand-100: #d9eaff;
+  --color-brand-500: #2f6fed;
+  --color-brand-600: #1f57d6;
+  --color-brand-700: #1a46ad;
+  --color-brand-900: #0f2557;
+  --color-accent-400: #ffb547;
+  --color-accent-500: #f59e0b;
+  --font-sans: "Noto Sans Armenian", "Inter", system-ui, sans-serif;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+@utility input {
+  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100;
+}
+@utility label {
+  @apply mb-1 block text-sm font-medium text-slate-700;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-brand-600 text-white hover:bg-brand-700;
+}
+@utility btn-secondary {
+  @apply btn border border-slate-300 bg-white text-slate-800 hover:bg-slate-100;
+}
+@utility btn-accent {
+  @apply btn bg-accent-500 text-slate-900 hover:bg-accent-400;
+}
+@utility card {
+  @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-sm;
+}
+@utility table-wrap {
+  @apply overflow-x-auto rounded-2xl border border-slate-200 bg-white;
+}
+@layer components {
+.table-wrap table {
+  @apply w-full text-left text-sm;
+}
+.table-wrap th {
+  @apply border-b border-slate-200 bg-slate-50 px-4 py-3 font-medium text-slate-600;
+}
+.table-wrap td {
+  @apply border-b border-slate-100 px-4 py-3 align-top;
+}
+}
